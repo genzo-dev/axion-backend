@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      target: dev
+    command: npm run test:e2e
+    env_file:
+      - .envs/.env.test
+    ports:
+      - '${LOCAL_PORT_APP}:${DOCKER_PORT_APP}'
+
+  postgres:
+    env_file:
+      - .envs/.env.test
+    ports:
+      - '${LOCAL_PORT_DB}:${DOCKER_PORT_DB}'
+    tmpfs:
+      - /var/lib/postgresql/data
