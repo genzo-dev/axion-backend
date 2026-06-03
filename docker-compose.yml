@@ -1,0 +1,15 @@
+services:
+  app:
+    build:
+      context: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_TYPE}']
+      interval: 5s
+      retries: 5
