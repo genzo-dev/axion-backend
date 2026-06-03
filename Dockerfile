@@ -24,9 +24,9 @@ COPY . .
 
 RUN npm run build
 
-# ===== PRODUCTION STAGE (LOCAL) =====
+# ===== STAGING STAGE (LOCAL) =====
 
-FROM node:20-alpine AS production
+FROM node:20-alpine AS staging
 
 WORKDIR /app
 
@@ -35,6 +35,6 @@ RUN npm install --omit=dev
 
 COPY --from=build /app/dist ./dist
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["node", "dist/main.js"]

@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      target: staging
+    # command: node dist/main.js
+    ports:
+      - '${LOCAL_PORT_APP}:${DOCKER_PORT_APP}'
+    env_file:
+      - .envs/.env.staging
+
+  postgres:
+    env_file:
+      - .envs/.env.staging
+    ports:
+      - '${LOCAL_PORT_DB}:${DOCKER_PORT_DB}'
+    volumes:
+      - pgdata-staging:/var/lib/postgresql/data
+
+volumes:
+  pgdata-staging:
