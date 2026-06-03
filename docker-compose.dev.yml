@@ -7,7 +7,7 @@ services:
       - .:/app
       - node_modules-dev:/app/node_modules
     ports:
-      - '3000:3000'
+      - '${LOCAL_PORT_APP}:${DOCKER_PORT_APP}'
     env_file:
       - .envs/.env.dev
     environment:
@@ -17,7 +17,7 @@ services:
     env_file:
       - .envs/.env.dev
     ports:
-      - '5432:5432'
+      - '${LOCAL_PORT_DB}:${DOCKER_PORT_DB}'
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
 
