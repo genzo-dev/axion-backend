@@ -8,8 +8,12 @@ services:
 
   postgres:
     image: postgres:17
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_DB}
     healthcheck:
       test:
-        ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_TYPE}']
+        ['CMD-SHELL', 'pg_isready -U $${DATABASE_USER} -d $${DATABASE_TYPE}']
       interval: 5s
       retries: 5

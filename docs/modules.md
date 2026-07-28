@@ -19,3 +19,6 @@ O módulo em questão serve para a configuração base de todo o projeto, assim 
 - **Providers:** AppService
 - **Controllers:** AppController
 - **Imports:** ConfigModule, TypeOrmModule
+- **Validação:** Schema de variáveis de ambiente validado com Joi
+
+As variáveis de ambiente (`DATABASE_*`, `NODE_ENV`) são validadas na inicialização pelo Joi, impedindo o app de subir com configurações inválidas.

@@ -27,6 +27,7 @@ Este repositório é responsável pelo backend do **Axion**, incluindo as docume
 | [TypeORM](https://typeorm.io/)                | ^1.0.0             |
 | [Docker](https://docs.docker.com/)            | -                  |
 | [Jest](https://jestjs.io/pt-BR/)              | ^30.0.0            |
+| [Joi](https://joi.dev/)                       | ^18.2.3            |
 
 ## Como rodar o projeto:
 
