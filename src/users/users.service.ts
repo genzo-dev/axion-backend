@@ -9,6 +9,8 @@ import { HashingService } from 'src/auth/hashing/hashing.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { QueryFailedError, Repository } from 'typeorm';
+import { createUsername } from 'src/common/utils/create-username';
+import { randomizeUsername } from 'src/common/utils/randomize-username';
 
 @Injectable()
 export class UsersService {
@@ -33,11 +35,15 @@ export class UsersService {
         createUserDto.password,
       );
 
+      const normalizeUsername = createUserDto.username
+        ? createUsername(createUserDto.username)
+        : randomizeUsername(createUserDto.name);
+
       const userData = {
         name: createUserDto.name,
         passwordHash,
         email: createUserDto.email,
-        username: createUserDto.username,
+        username: normalizeUsername,
       };
 
       const newUser = this.userRepository.create(userData);
@@ -50,7 +56,7 @@ export class UsersService {
         error instanceof QueryFailedError &&
         (error as any).driverError.code === '23505'
       ) {
-        throw new ConflictException('E-mail já está cadastrado');
+        throw new ConflictException('E-mail ou username (@) já cadastrado');
       }
 
       throw error;
