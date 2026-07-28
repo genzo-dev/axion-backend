@@ -2,6 +2,7 @@ services:
   app:
     build:
       target: staging
+    image: axion-backend-app:staging
     # command: node dist/main.js
     ports:
       - '${LOCAL_PORT_APP}:${DOCKER_PORT_APP}'

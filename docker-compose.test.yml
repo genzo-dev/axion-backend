@@ -1,7 +1,8 @@
 services:
   app:
     build:
-      target: dev
+      target: development
+    image: axion-backend-app:test
     command: npm run test:e2e
     env_file:
       - .envs/.env.test

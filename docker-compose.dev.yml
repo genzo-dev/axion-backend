@@ -2,6 +2,7 @@ services:
   app:
     build:
       target: development
+    image: axion-backend-app:dev
     command: npm run start:dev
     volumes:
       - .:/app
