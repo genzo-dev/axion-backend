@@ -12,11 +12,15 @@ describe('AppController', () => {
     }).compile();
 
     appController = app.get<AppController>(AppController);
+
+    afterAll(async () => {
+      await app.close();
+    });
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return NODE_ENV or "ERROR"', () => {
+      expect(appController.getHello()).toBe('test');
     });
   });
 });

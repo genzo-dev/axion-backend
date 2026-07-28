@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      target: development
+    image: axion-backend-app:dev
+    command: npm run start:dev
+    volumes:
+      - .:/app
+      - node_modules-dev:/app/node_modules
+    ports:
+      - '${LOCAL_PORT_APP}:${DOCKER_PORT_APP}'
+    env_file:
+      - .envs/.env.dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+  postgres:
+    env_file:
+      - .envs/.env.dev
+    ports:
+      - '${LOCAL_PORT_DB}:${DOCKER_PORT_DB}'
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+
+volumes:
+  pgdata-dev:
+  node_modules-dev:
