@@ -50,4 +50,5 @@ jobs:
           node-version: 22
           cache: 'npm'
       - run: npm ci
+      - run: cp .envs/.env.test-EXAMPLE .envs/.env.test
       - run: npm run docker:test:e2e
