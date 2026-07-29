@@ -1,12 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
+import { HashingService } from 'src/auth/hashing/hashing.service';
 
 describe('UsersService', () => {
   let service: UsersService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersService],
+      providers: [
+        UsersService,
+        {
+          provide: UsersService,
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: HashingService,
+          useValue: {
+            hash: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
