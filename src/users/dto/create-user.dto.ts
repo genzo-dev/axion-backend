@@ -13,14 +13,14 @@ export class CreateUserDto {
     description:
       'Usuário deve informar seu e-mail no momento da criação de sua conta.',
   })
-  @IsNotEmpty({ message: 'Email é obrigatória' })
+  @IsNotEmpty({ message: 'Email é obrigatório' })
   @IsEmail({}, { message: 'Email inválido' })
   email!: string;
 
   @ApiProperty({
-    example: 'genzo-dev',
+    example: 'genzo_dev',
     description:
-      'Sempre será em formato de slug. Deverá aparecer com um @ no frontend (Ex.: @genzo-dev)',
+      'Segue um formato de tag de usuário, transformando espaços em "_" de forma automática (genzo dev -> genzo_dev) e será utilizado como tag do usuário no frontend (Ex.: @genzo_dev)',
   })
   @IsNotEmpty({ message: 'Username inválido' })
   @IsString({ message: 'Username deve ser um texto' })

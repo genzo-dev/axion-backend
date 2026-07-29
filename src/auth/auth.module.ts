@@ -3,6 +3,9 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { HashingService } from './hashing/hashing.service';
 import { BcrypService } from './hashing/bcrypt.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from 'src/users/entities/user.entity';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   controllers: [AuthController],
@@ -13,7 +16,7 @@ import { BcrypService } from './hashing/bcrypt.service';
       useClass: BcrypService,
     },
   ],
-  exports: [AuthService, HashingService],
-  imports: [AuthModule],
+  imports: [TypeOrmModule.forFeature([User])],
+  exports: [AuthService, HashingService, TypeOrmModule],
 })
 export class AuthModule {}

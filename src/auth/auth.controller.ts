@@ -1,7 +1,23 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import {
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @ApiOperation({ summary: 'Login do usuário na plataforma.' })
+  @ApiCreatedResponse({ description: 'Login realizado com sucesso.' })
+  @ApiUnauthorizedResponse({
+    description: 'E-mail, username ou senha inválidos.',
+  })
+  @Post('login')
+  login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
 }

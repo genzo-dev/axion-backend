@@ -21,7 +21,6 @@ export class User {
   @IsEmail()
   email!: string;
 
-  // Ex: @genzo-dev - TODO: Remover comentário após instalação e configuração do Swagger
   @Column({ length: 50 })
   username!: string;
 
@@ -30,6 +29,9 @@ export class User {
 
   @Column({ length: 150 })
   name!: string;
+
+  @Column({ default: true })
+  isValid!: boolean;
 
   @CreateDateColumn()
   createdAt?: Date;

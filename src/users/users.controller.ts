@@ -14,7 +14,6 @@ import {
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiOperation,
-  ApiTags,
 } from '@nestjs/swagger';
 
 @Controller('users')
