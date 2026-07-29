@@ -56,7 +56,32 @@ export class UsersService {
         error instanceof QueryFailedError &&
         (error as any).driverError.code === '23505'
       ) {
-        throw new ConflictException('E-mail ou username (@) já cadastrado');
+        const driverError = (
+          error as QueryFailedError & {
+            driverError: { code: string; constraint?: string };
+          }
+        ).driverError;
+
+        const constraint = driverError.constraint;
+
+        if (constraint === 'UQ_user_email') {
+          throw new ConflictException({
+            field: 'email',
+            message: 'Já existe uma conta com este e-mail',
+          });
+        }
+
+        if (constraint === 'UQ_user_username') {
+          throw new ConflictException({
+            field: 'username',
+            message: 'Este nome de usuário não está disponível',
+          });
+        }
+
+        throw new ConflictException({
+          field: 'general',
+          message: 'Dados duplicados',
+        });
       }
 
       throw error;
