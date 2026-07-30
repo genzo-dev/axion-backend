@@ -163,7 +163,7 @@ describe('AuthService', () => {
     );
   });
 
-  it('should refresh access and refresh tokens', async () => {
+  it('should returnd new access and refresh tokens', async () => {
     const refreshTokenDto: RefreshTokenDto = { refreshToken: 'refresh-token' };
     const mockTokens = {
       accessToken: 'access-token',
