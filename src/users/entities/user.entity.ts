@@ -30,6 +30,12 @@ export class User {
   @Column({ length: 150 })
   name!: string;
 
+  @Column({ nullable: true })
+  vericationCode?: string;
+
+  @Column({ default: false })
+  isVerified!: boolean;
+
   @Column({ default: true })
   isValid!: boolean;
 

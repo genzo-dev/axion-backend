@@ -11,6 +11,7 @@ import { User } from './entities/user.entity';
 import { QueryFailedError, Repository } from 'typeorm';
 import { createUsername } from 'src/common/utils/create-username';
 import { randomizeUsername } from 'src/common/utils/randomize-username';
+import { generateValidationUserCode } from 'src/common/utils/generate-validation-user-code';
 
 @Injectable()
 export class UsersService {
@@ -47,8 +48,14 @@ export class UsersService {
       };
 
       const newUser = this.userRepository.create(userData);
-
       await this.userRepository.save(newUser);
+
+      const newUserValidateCode = generateValidationUserCode();
+      await this.userRepository.update(newUser.uuid, {
+        vericationCode: newUserValidateCode,
+      });
+
+      console.log('CÓDIGO DE VALIDAÇÃO DA CONTA ', newUserValidateCode);
 
       return newUser;
     } catch (error) {

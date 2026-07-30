@@ -42,6 +42,10 @@ export class AuthService {
       throw new UnauthorizedException('E-mail, username ou senha inválidos');
     }
 
+    if (!user.isVerified) {
+      throw new UnauthorizedException('Usuário não verificado no sistema.');
+    }
+
     return this.createTokens(user);
   }
 
