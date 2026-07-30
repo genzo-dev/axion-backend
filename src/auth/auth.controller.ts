@@ -6,6 +6,7 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -19,5 +20,20 @@ export class AuthController {
   @Post('login')
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @ApiOperation({
+    summary:
+      'Usuário autenticado deve fazer refresh automático de seus tokens.',
+  })
+  @ApiCreatedResponse({
+    description: 'access token e refresh token gerados com sucesso.',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Usuário não autorizado.',
+  })
+  @Post('refresh')
+  refreshTokens(@Body() refreshTokensDto: RefreshTokenDto) {
+    return this.authService.refreshTokens(refreshTokensDto);
   }
 }
