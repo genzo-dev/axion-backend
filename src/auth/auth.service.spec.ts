@@ -7,6 +7,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import jwtConfig from './config/jwt.config';
 import { UnauthorizedException } from '@nestjs/common';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -153,15 +154,39 @@ describe('AuthService', () => {
       passwordHash: 'hashed-password',
       isValid: true,
     };
-    const mockTokens = {
-      accessToken: 'access-token',
-      refreshToken: 'refresh-token',
-    };
 
     jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(mockUser);
     jest.spyOn(hashingService, 'compare').mockResolvedValue(false);
 
     await expect(authService.login(loginDto)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('should refresh access and refresh tokens', async () => {
+    const refreshTokenDto: RefreshTokenDto = { refreshToken: 'refresh-token' };
+    const mockTokens = {
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+    };
+
+    jest.spyOn(authService, 'refreshTokens').mockResolvedValue(mockTokens);
+
+    const result = await authService.refreshTokens(refreshTokenDto);
+
+    expect(result).toEqual(mockTokens);
+  });
+
+  it('should returned UnauthorizedException when received invalid refresh token', async () => {
+    const refreshTokenDto: RefreshTokenDto = {
+      refreshToken: 'invalid-refresh-token',
+    };
+
+    jest
+      .spyOn(jwtService, 'verifyAsync')
+      .mockRejectedValue(new Error('invalid token'));
+
+    await expect(authService.refreshTokens(refreshTokenDto)).rejects.toThrow(
       UnauthorizedException,
     );
   });
