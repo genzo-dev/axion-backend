@@ -5,7 +5,9 @@ import { HashingService } from './hashing/hashing.service';
 import { BcrypService } from './hashing/bcrypt.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { UsersModule } from 'src/users/users.module';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import jwtConfig from './config/jwt.config';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   controllers: [AuthController],
@@ -16,7 +18,11 @@ import { UsersModule } from 'src/users/users.module';
       useClass: BcrypService,
     },
   ],
-  imports: [TypeOrmModule.forFeature([User])],
-  exports: [AuthService, HashingService, TypeOrmModule],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    JwtModule.registerAsync(jwtConfig.asProvider()),
+    ConfigModule.forFeature(jwtConfig),
+  ],
+  exports: [AuthService, HashingService, TypeOrmModule, JwtModule],
 })
 export class AuthModule {}

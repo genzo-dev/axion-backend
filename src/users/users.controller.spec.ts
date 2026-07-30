@@ -59,6 +59,7 @@ describe('UsersController', () => {
       ...createUserResponse,
       createAt: new Date(),
       updatedAt: new Date(),
+      isValid: true,
     };
 
     usersService.create.mockResolvedValue(expectedResult);
