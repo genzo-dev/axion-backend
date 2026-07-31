@@ -9,6 +9,8 @@ import jwtConfig from './config/jwt.config';
 import type { ConfigType } from '@nestjs/config';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ValidateCodeDto } from './dto/validate-code.dto';
+import { ResendCodeDto } from './dto/resend-code.dto';
+import { generateValidationUserCode } from 'src/common/utils/generate-validation-user-code';
 
 @Injectable()
 export class AuthService {
@@ -145,7 +147,45 @@ export class AuthService {
 
       const validUser = await this.usersRepository.save(user);
 
-      return validUser;
+      return this.createTokens(validUser);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async resendCode(resendCodeDto: ResendCodeDto) {
+    try {
+      const user = await this.usersRepository.findOneBy({
+        email: resendCodeDto.validateEmail,
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('Usuário não cadastrado');
+      }
+
+      if (user.isVerified) {
+        throw new UnauthorizedException('Conta já verificada');
+      }
+
+      if (user.resendTimeCode && user.resendTimeCode > new Date()) {
+        throw new UnauthorizedException(
+          'Aguarde para pedir seu código novamente',
+        );
+      }
+
+      const newUserValidateCode = generateValidationUserCode();
+      user.resendTimeCode = new Date(Date.now() + 30 * 1000);
+      user.validTimeCode = new Date(Date.now() + 15 * 60 * 1000);
+
+      user.vericationCode = newUserValidateCode;
+
+      const validUser = await this.usersRepository.save(user);
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('NOVO CÓDIGO: ', validUser.vericationCode);
+      }
+
+      return { message: 'Código reenviado com sucesso' };
     } catch (error) {
       throw error;
     }
