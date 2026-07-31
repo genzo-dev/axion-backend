@@ -15,6 +15,9 @@ import { randomizeUsername } from 'src/common/utils/randomize-username';
 import { generateValidationUserCode } from 'src/common/utils/generate-validation-user-code';
 import emailCodeConfig from 'src/app/config/email-code.config';
 import type { ConfigType } from '@nestjs/config';
+import { EmailService } from 'src/email/email.service';
+import { SendEmailDto } from 'src/email/dto/send-email.dto';
+import { buildValidationCodeEmail } from 'src/email/templates/validation-code.template';
 
 @Injectable()
 export class UsersService {
@@ -24,6 +27,7 @@ export class UsersService {
     private readonly hashingService: HashingService,
     @Inject(emailCodeConfig.KEY)
     private readonly emailCodeConfiguration: ConfigType<typeof emailCodeConfig>,
+    private readonly emailService: EmailService,
   ) {}
 
   notFoundPerson<T>(
@@ -71,6 +75,17 @@ export class UsersService {
       console.log('CÓDIGO DE VALIDAÇÃO DA CONTA ', newUserValidateCode);
 
       const savedUser = await this.userRepository.save(newUser);
+
+      const { html, attachments } =
+        buildValidationCodeEmail(newUserValidateCode);
+      const newSendEmailDto: SendEmailDto = {
+        to: savedUser.email,
+        subject: 'Axion · Confirme seu e-mail',
+        html: html,
+        attachments,
+      };
+
+      await this.emailService.sendEmail(newSendEmailDto);
 
       return savedUser;
     } catch (error) {

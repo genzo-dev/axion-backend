@@ -6,12 +6,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { ConfigModule } from '@nestjs/config';
 import emailCodeConfig from 'src/app/config/email-code.config';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     AuthModule,
     ConfigModule.forFeature(emailCodeConfig),
+    EmailModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],
