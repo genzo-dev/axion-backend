@@ -3,6 +3,7 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { HashingService } from 'src/auth/hashing/hashing.service';
 import { ConflictException } from '@nestjs/common';
+import emailCodeConfig from 'src/app/config/email-code.config';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -25,6 +26,13 @@ describe('UsersController', () => {
           provide: HashingService,
           useValue: {
             hash: jest.fn(),
+          },
+        },
+        {
+          provide: emailCodeConfig.KEY,
+          useValue: {
+            emailCodeExpiresAt: 900,
+            emailCodeResendBlockTime: 30,
           },
         },
       ],
@@ -60,6 +68,7 @@ describe('UsersController', () => {
       createAt: new Date(),
       updatedAt: new Date(),
       isValid: true,
+      isVerified: true,
     };
 
     usersService.create.mockResolvedValue(expectedResult);

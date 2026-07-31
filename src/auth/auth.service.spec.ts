@@ -8,6 +8,9 @@ import { Repository } from 'typeorm';
 import jwtConfig from './config/jwt.config';
 import { UnauthorizedException } from '@nestjs/common';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import emailCodeConfig from 'src/app/config/email-code.config';
+import { ValidateCodeDto } from './dto/validate-code.dto';
+import { ResendCodeDto } from './dto/resend-code.dto';
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -47,6 +50,14 @@ describe('AuthService', () => {
           provide: getRepositoryToken(User),
           useValue: {
             findOneBy: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: emailCodeConfig.KEY,
+          useValue: {
+            emailCodeExpiresAt: 900,
+            emailCodeResendBlockTime: 30,
           },
         },
       ],
@@ -71,6 +82,7 @@ describe('AuthService', () => {
       name: 'userMocked',
       passwordHash: 'hashed-password',
       isValid: true,
+      isVerified: true,
     };
     const mockTokens = {
       accessToken: 'access-token',
@@ -107,6 +119,7 @@ describe('AuthService', () => {
       name: 'userMocked',
       passwordHash: 'hashed-password',
       isValid: true,
+      isVerified: true,
     };
     const mockTokens = {
       accessToken: 'access-token',
@@ -153,6 +166,7 @@ describe('AuthService', () => {
       name: 'userMocked',
       passwordHash: 'hashed-password',
       isValid: true,
+      isVerified: true,
     };
 
     jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(mockUser);
@@ -187,6 +201,142 @@ describe('AuthService', () => {
       .mockRejectedValue(new Error('invalid token'));
 
     await expect(authService.refreshTokens(refreshTokenDto)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('should update isVerified user with valid code', async () => {
+    const mockUser = {
+      uuid: 'uuid-123',
+      email: 'email@email.com',
+      username: 'email12',
+      name: 'userMocked',
+      passwordHash: 'hashed-password',
+      verificationCode: '123456',
+      isValid: true,
+      isVerified: false,
+    };
+
+    const verificationCodeMocked: ValidateCodeDto = {
+      validateEmail: mockUser.email,
+      validateCode: '123456',
+    };
+
+    const mockTokens = {
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+    };
+
+    jest.spyOn(authService, 'validateAccount').mockResolvedValue(mockTokens);
+
+    const result = await authService.validateAccount(verificationCodeMocked);
+
+    expect(result).toEqual(mockTokens);
+  });
+
+  it('should return UnauthorizedException by invalid code', async () => {
+    const mockUser = {
+      uuid: 'uuid-123',
+      email: 'email@email.com',
+      username: 'email12',
+      name: 'userMocked',
+      passwordHash: 'hashed-password',
+      verificationCode: '676767',
+      isValid: true,
+      isVerified: false,
+    };
+
+    const verificationCodeMocked: ValidateCodeDto = {
+      validateEmail: mockUser.email,
+      validateCode: '123456',
+    };
+
+    const mockTokens = {
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+    };
+
+    jest
+      .spyOn(authService, 'validateAccount')
+      .mockRejectedValue(new UnauthorizedException('invalid code'));
+
+    await expect(
+      authService.validateAccount(verificationCodeMocked),
+    ).rejects.toThrow(UnauthorizedException);
+  });
+
+  it('should resend new email code', async () => {
+    const mockUser = {
+      uuid: 'uuid-123',
+      email: 'email@email.com',
+      username: 'email12',
+      name: 'userMocked',
+      passwordHash: 'hashed-password',
+      verificationCode: '123456',
+      isValid: true,
+      isVerified: false,
+    };
+
+    const verificationCodeMocked: ValidateCodeDto = {
+      validateEmail: mockUser.email,
+      validateCode: '123456',
+    };
+
+    const mockTokens = {
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+    };
+
+    jest.spyOn(authService, 'validateAccount').mockResolvedValue(mockTokens);
+
+    const result = await authService.validateAccount(verificationCodeMocked);
+
+    expect(result).toEqual(mockTokens);
+  });
+
+  it('should resend code successfully', async () => {
+    const resendCodeDto: ResendCodeDto = { validateEmail: 'email@email.com' };
+    const mockUser = {
+      uuid: 'uuid-123',
+      email: 'email@email.com',
+      username: 'email12',
+      name: 'userMocked',
+      passwordHash: 'hashed-password',
+      isValid: true,
+      isVerified: false,
+    };
+
+    jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(mockUser);
+    jest.spyOn(usersRepository, 'save').mockResolvedValue({
+      ...mockUser,
+      vericationCode: '123456',
+    });
+
+    const result = await authService.resendCode(resendCodeDto);
+
+    expect(usersRepository.findOneBy).toHaveBeenCalledWith({
+      email: resendCodeDto.validateEmail,
+    });
+    expect(usersRepository.save).toHaveBeenCalled();
+    expect(result).toEqual({ message: 'Código reenviado com sucesso' });
+  });
+
+  it('should return UnauthorizedException when user is blocked to request a new code', async () => {
+    const resendCodeDto: ResendCodeDto = { validateEmail: 'email@email.com' };
+    const mockUser = {
+      uuid: 'uuid-123',
+      email: 'email@email.com',
+      username: 'email12',
+      name: 'userMocked',
+      passwordHash: 'hashed-password',
+      isValid: true,
+      isVerified: false,
+      resendTimeCode: new Date(Date.now() + 60_000),
+    };
+
+    jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(mockUser);
+
+    await expect(authService.resendCode(resendCodeDto)).rejects.toThrow(
       UnauthorizedException,
     );
   });

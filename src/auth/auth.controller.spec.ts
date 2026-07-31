@@ -7,6 +7,8 @@ import { User } from 'src/users/entities/user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import emailCodeConfig from 'src/app/config/email-code.config';
+import jwtConfig from './config/jwt.config';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -18,7 +20,46 @@ describe('AuthController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [AuthService],
+      providers: [
+        AuthService,
+        {
+          provide: getRepositoryToken(User),
+          useValue: {
+            findOneBy: jest.fn(),
+          },
+        },
+        {
+          provide: emailCodeConfig.KEY,
+          useValue: {
+            emailCodeExpiresAt: 900,
+            emailCodeResendBlockTime: 30,
+          },
+        },
+        {
+          provide: HashingService,
+          useValue: {
+            compare: jest.fn(),
+            hash: jest.fn(),
+          },
+        },
+        {
+          provide: JwtService,
+          useValue: {
+            signAsync: jest.fn(),
+            verifyAsync: jest.fn(),
+          },
+        },
+        {
+          provide: jwtConfig.KEY,
+          useValue: {
+            secret: 'test-secret',
+            audience: 'test-audience',
+            issuer: 'test-issuer',
+            jwtTtl: 900,
+            jwtRefreshTtl: 604800,
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
