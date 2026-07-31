@@ -7,6 +7,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ValidateCodeDto } from './dto/validate-code.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -35,5 +36,10 @@ export class AuthController {
   @Post('refresh')
   refreshTokens(@Body() refreshTokensDto: RefreshTokenDto) {
     return this.authService.refreshTokens(refreshTokensDto);
+  }
+
+  @Post('verify')
+  validateAccount(@Body() validateCodeDto: ValidateCodeDto) {
+    return this.authService.validateAccount(validateCodeDto);
   }
 }

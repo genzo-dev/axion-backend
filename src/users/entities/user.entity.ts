@@ -30,8 +30,14 @@ export class User {
   @Column({ length: 150 })
   name!: string;
 
-  @Column({ nullable: true })
-  vericationCode?: string;
+  @Column({ type: 'varchar', nullable: true })
+  vericationCode?: string | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  validTimeCode?: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  resendTimeCode?: Date | null;
 
   @Column({ default: false })
   isVerified!: boolean;

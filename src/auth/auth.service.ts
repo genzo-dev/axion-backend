@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import jwtConfig from './config/jwt.config';
 import type { ConfigType } from '@nestjs/config';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ValidateCodeDto } from './dto/validate-code.dto';
 
 @Injectable()
 export class AuthService {
@@ -96,6 +97,7 @@ export class AuthService {
       const user = await this.usersRepository.findOneBy({
         uuid: sub,
         isValid: true,
+        isVerified: true,
       });
 
       if (!user) {
@@ -107,6 +109,45 @@ export class AuthService {
       if (error instanceof Error) {
         throw new UnauthorizedException(error);
       }
+    }
+  }
+
+  async validateAccount(validateCodeDto: ValidateCodeDto) {
+    try {
+      const user = await this.usersRepository.findOneBy({
+        email: validateCodeDto.validateEmail,
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('Usuário não cadastrado');
+      }
+
+      if (!user.vericationCode) {
+        throw new UnauthorizedException('Nenhum código ativo');
+      }
+
+      if (user.isVerified) {
+        throw new UnauthorizedException('Conta já verificada');
+      }
+
+      if (user.validTimeCode && user.validTimeCode < new Date()) {
+        throw new UnauthorizedException('Código expirado');
+      }
+
+      if (user.vericationCode !== validateCodeDto.validateCode) {
+        throw new UnauthorizedException('Código inválido');
+      }
+
+      user.isVerified = true;
+      user.validTimeCode = null;
+      user.vericationCode = null;
+      user.resendTimeCode = null;
+
+      const validUser = await this.usersRepository.save(user);
+
+      return validUser;
+    } catch (error) {
+      throw error;
     }
   }
 }

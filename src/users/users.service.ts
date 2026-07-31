@@ -51,13 +51,18 @@ export class UsersService {
       await this.userRepository.save(newUser);
 
       const newUserValidateCode = generateValidationUserCode();
-      await this.userRepository.update(newUser.uuid, {
-        vericationCode: newUserValidateCode,
-      });
+      const newValidTimeCode = new Date(Date.now() + 15 * 60 * 1000);
+      const newResendTimeCode = new Date(Date.now() + 30 * 1000);
+
+      newUser.vericationCode = newUserValidateCode;
+      newUser.validTimeCode = newValidTimeCode;
+      newUser.resendTimeCode = newResendTimeCode;
 
       console.log('CÓDIGO DE VALIDAÇÃO DA CONTA ', newUserValidateCode);
 
-      return newUser;
+      const savedUser = await this.userRepository.save(newUser);
+
+      return savedUser;
     } catch (error) {
       if (
         error instanceof QueryFailedError &&
