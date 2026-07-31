@@ -11,6 +11,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ValidateCodeDto } from './dto/validate-code.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
 import { generateValidationUserCode } from 'src/common/utils/generate-validation-user-code';
+import emailCodeConfig from '../app/config/email-code.config';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,8 @@ export class AuthService {
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
     private readonly jwtService: JwtService,
+    @Inject(emailCodeConfig.KEY)
+    private readonly emailCodeConfiguration: ConfigType<typeof emailCodeConfig>,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -174,8 +177,13 @@ export class AuthService {
       }
 
       const newUserValidateCode = generateValidationUserCode();
-      user.resendTimeCode = new Date(Date.now() + 30 * 1000);
-      user.validTimeCode = new Date(Date.now() + 15 * 60 * 1000);
+      user.resendTimeCode = new Date(
+        Date.now() +
+          this.emailCodeConfiguration.emailCodeResendBlockTime * 1000,
+      );
+      user.validTimeCode = new Date(
+        Date.now() + this.emailCodeConfiguration.emailCodeExpiresAt * 1000,
+      );
 
       user.vericationCode = newUserValidateCode;
 

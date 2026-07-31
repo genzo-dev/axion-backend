@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,6 +13,8 @@ import { QueryFailedError, Repository } from 'typeorm';
 import { createUsername } from 'src/common/utils/create-username';
 import { randomizeUsername } from 'src/common/utils/randomize-username';
 import { generateValidationUserCode } from 'src/common/utils/generate-validation-user-code';
+import emailCodeConfig from 'src/app/config/email-code.config';
+import type { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +22,8 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly hashingService: HashingService,
+    @Inject(emailCodeConfig.KEY)
+    private readonly emailCodeConfiguration: ConfigType<typeof emailCodeConfig>,
   ) {}
 
   notFoundPerson<T>(
@@ -51,8 +56,13 @@ export class UsersService {
       await this.userRepository.save(newUser);
 
       const newUserValidateCode = generateValidationUserCode();
-      const newValidTimeCode = new Date(Date.now() + 15 * 60 * 1000);
-      const newResendTimeCode = new Date(Date.now() + 30 * 1000);
+      const newValidTimeCode = (newUser.resendTimeCode = new Date(
+        Date.now() +
+          this.emailCodeConfiguration.emailCodeResendBlockTime * 1000,
+      ));
+      const newResendTimeCode = (newUser.validTimeCode = new Date(
+        Date.now() + this.emailCodeConfiguration.emailCodeExpiresAt * 1000,
+      ));
 
       newUser.vericationCode = newUserValidateCode;
       newUser.validTimeCode = newValidTimeCode;

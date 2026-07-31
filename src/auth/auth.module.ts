@@ -8,6 +8,7 @@ import { User } from 'src/users/entities/user.entity';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import jwtConfig from './config/jwt.config';
 import { ConfigModule } from '@nestjs/config';
+import emailCodeConfig from 'src/app/config/email-code.config';
 
 @Module({
   controllers: [AuthController],
@@ -22,6 +23,7 @@ import { ConfigModule } from '@nestjs/config';
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync(jwtConfig.asProvider()),
     ConfigModule.forFeature(jwtConfig),
+    ConfigModule.forFeature(emailCodeConfig),
   ],
   exports: [AuthService, HashingService, TypeOrmModule, JwtModule],
 })
