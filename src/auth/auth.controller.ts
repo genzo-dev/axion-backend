@@ -13,6 +13,7 @@ import { ResendCodeDto } from './dto/resend-code.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthTokenGuard } from './guards/auth-token.guard';
 import type { Request } from 'express';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -70,6 +71,20 @@ export class AuthController {
   @Post('resend-code')
   resendCode(@Body() resendCodeDto: ResendCodeDto) {
     return this.authService.resendCode(resendCodeDto);
+  }
+
+  @ApiOperation({
+    summary: 'Usuário recebe um link para redefinir sua senha.',
+  })
+  @ApiCreatedResponse({
+    description: 'Link para redefinição de senha enviado com sucesso.',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Usuário não autorizado | E-mail não cadastrado',
+  })
+  @Post('forgot-password')
+  forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto);
   }
 
   @ApiOperation({

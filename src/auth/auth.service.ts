@@ -13,6 +13,11 @@ import { ResendCodeDto } from './dto/resend-code.dto';
 import { generateValidationUserCode } from 'src/common/utils/generate-validation-user-code';
 import emailCodeConfig from '../app/config/email-code.config';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import resetPasswordConfig from './config/reset-password.config';
+import { EmailService } from 'src/email/email.service';
+import { SendEmailDto } from 'src/email/dto/send-email.dto';
+import { buildResetPasswordEmail } from 'src/email/templates/reset-password.template';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,11 +25,16 @@ export class AuthService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private readonly hashingService: HashingService,
+    private readonly emailService: EmailService,
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
     private readonly jwtService: JwtService,
     @Inject(emailCodeConfig.KEY)
     private readonly emailCodeConfiguration: ConfigType<typeof emailCodeConfig>,
+    @Inject(resetPasswordConfig.KEY)
+    private readonly resetPasswordConfiguration: ConfigType<
+      typeof resetPasswordConfig
+    >,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -78,16 +88,21 @@ export class AuthService {
     };
   }
 
-  private async signJwtAsync<T>(sub: string, expiresIn: number, payload?: T) {
+  private async signJwtAsync<T>(
+    sub: string,
+    expiresIn: number,
+    payload?: T,
+    options?: { secret: string; audience?: string; issuer?: string },
+  ) {
     return await this.jwtService.signAsync(
       {
         sub,
         ...payload,
       },
       {
-        audience: this.jwtConfiguration.audience,
-        issuer: this.jwtConfiguration.issuer,
-        secret: this.jwtConfiguration.secret,
+        audience: options?.audience ?? this.jwtConfiguration.audience,
+        issuer: options?.issuer ?? this.jwtConfiguration.issuer,
+        secret: options?.secret ?? this.jwtConfiguration.secret,
         expiresIn,
       },
     );
@@ -203,6 +218,45 @@ export class AuthService {
   // auth/forgot-password
   // TODO: Criar função para o caso do esquecimento da senha.
   // Deve ser gerado um JWT a partir do email do usuário, e enviado para o mesmo, com um link para a página de redefinição de senha.
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const user = await this.usersRepository.findOneBy({
+      email: forgotPasswordDto.email,
+      isValid: true,
+      isVerified: true,
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Se o e-mail estiver cadastrado, você receberá um link para redefinir sua senha.',
+      );
+    }
+
+    const resetPasswordToken = await this.signJwtAsync(
+      user.uuid,
+      this.resetPasswordConfiguration.jwtTtl,
+      undefined,
+      {
+        secret: this.resetPasswordConfiguration.secret,
+        audience: this.resetPasswordConfiguration.audience,
+        issuer: this.resetPasswordConfiguration.issuer,
+      },
+    );
+
+    const resetLink = `${this.resetPasswordConfiguration.frontUrl}/reset-password?token=${resetPasswordToken}`;
+
+    const { html, attachments } = buildResetPasswordEmail(resetLink);
+    const newSendEmailDto: SendEmailDto = {
+      to: user.email,
+      subject: 'Axion · Redefinição de senha',
+      html: html,
+      attachments,
+    };
+
+    await this.emailService.sendEmail(newSendEmailDto);
+
+    return { message: 'E-mail de redefinição de senha enviado com sucesso' };
+  }
 
   // auth/reset-password
   // TODO: Criar função para o caso de redefinição de senha de um usuário deslogado.
