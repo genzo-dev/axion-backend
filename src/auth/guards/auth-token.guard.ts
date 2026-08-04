@@ -38,7 +38,7 @@ export class AuthTokenGuard implements CanActivate {
         token,
         this.jwtConfiguration,
       );
-      // TODO: Adicionar isActive quando criar validação de email via código
+      // TODO: Trocar isValid por isActive, melhorando o entendimento do código
       const user = await this.usersRepository.findOneBy({
         uuid: payload.sub,
         isVerified: true,

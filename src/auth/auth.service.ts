@@ -12,6 +12,7 @@ import { ValidateCodeDto } from './dto/validate-code.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
 import { generateValidationUserCode } from 'src/common/utils/generate-validation-user-code';
 import emailCodeConfig from '../app/config/email-code.config';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -197,5 +198,32 @@ export class AuthService {
     } catch (error) {
       throw error;
     }
+  }
+
+  // auth/forgot-password
+  // TODO: Criar função para o caso do esquecimento da senha.
+  // Deve ser gerado um JWT a partir do email do usuário, e enviado para o mesmo, com um link para a página de redefinição de senha.
+
+  // auth/reset-password
+  // TODO: Criar função para o caso de redefinição de senha de um usuário deslogado.
+  // Deve ser verificado o JWT enviado no link, e caso seja válido, permitir a redefinição da senha do usuário.
+
+  async changePassword(user: User, changePasswordDto: ChangePasswordDto) {
+    const passwordIsValid = await this.hashingService.compare(
+      changePasswordDto.password,
+      user.passwordHash,
+    );
+
+    if (!passwordIsValid) {
+      throw new UnauthorizedException('Senha atual inválida');
+    }
+
+    user.passwordHash = await this.hashingService.hash(
+      changePasswordDto.newPassword,
+    );
+
+    await this.usersRepository.save(user);
+
+    return { message: 'Senha alterada com sucesso' };
   }
 }

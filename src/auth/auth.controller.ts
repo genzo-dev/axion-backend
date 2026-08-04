@@ -1,7 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiOperation,
   ApiUnauthorizedResponse,
@@ -9,6 +10,9 @@ import {
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ValidateCodeDto } from './dto/validate-code.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { AuthTokenGuard } from './guards/auth-token.guard';
+import type { Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -66,5 +70,24 @@ export class AuthController {
   @Post('resend-code')
   resendCode(@Body() resendCodeDto: ResendCodeDto) {
     return this.authService.resendCode(resendCodeDto);
+  }
+
+  @ApiOperation({
+    summary: 'Usuário pode alterar a senha a partir do token de autenticação.',
+  })
+  @ApiBearerAuth('access-token')
+  @ApiCreatedResponse({
+    description: 'Senha alterada com sucesso.',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Senha atual inválida | Usuário não autorizado',
+  })
+  @UseGuards(AuthTokenGuard)
+  @Patch('change-password')
+  changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @Req() req: Request,
+  ) {
+    return this.authService.changePassword(req.user, changePasswordDto);
   }
 }
