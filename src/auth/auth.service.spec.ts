@@ -11,6 +11,8 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import emailCodeConfig from 'src/app/config/email-code.config';
 import { ValidateCodeDto } from './dto/validate-code.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
+import { EmailService } from 'src/email/email.service';
+import resetPasswordConfig from './config/reset-password.config';
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -58,6 +60,17 @@ describe('AuthService', () => {
           useValue: {
             emailCodeExpiresAt: 900,
             emailCodeResendBlockTime: 30,
+          },
+        },
+        { provide: EmailService, useValue: { sendEmail: jest.fn() } },
+        {
+          provide: resetPasswordConfig.KEY,
+          useValue: {
+            secret: 'test-secret',
+            audience: 'test-audience',
+            issuer: 'test-issuer',
+            jwtTtl: 900,
+            frontUrl: 'http://localhost:3000',
           },
         },
       ],

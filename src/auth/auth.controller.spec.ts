@@ -9,6 +9,8 @@ import { Repository } from 'typeorm';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import emailCodeConfig from 'src/app/config/email-code.config';
 import jwtConfig from './config/jwt.config';
+import { EmailService } from 'src/email/email.service';
+import resetPasswordConfig from './config/reset-password.config';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -57,6 +59,17 @@ describe('AuthController', () => {
             issuer: 'test-issuer',
             jwtTtl: 900,
             jwtRefreshTtl: 604800,
+          },
+        },
+        { provide: EmailService, useValue: { sendEmail: jest.fn() } },
+        {
+          provide: resetPasswordConfig.KEY,
+          useValue: {
+            secret: 'test-secret',
+            audience: 'test-audience',
+            issuer: 'test-issuer',
+            jwtTtl: 900,
+            frontUrl: 'http://localhost:3000',
           },
         },
       ],
