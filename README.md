@@ -19,15 +19,18 @@ Este repositório é responsável pelo backend do **Axion**, incluindo as docume
 
 ## Stack
 
-| Ferramenta                                    | Versão             |
-| --------------------------------------------- | ------------------ |
-| [NestJS](https://nestjs.com/)                 | ^11.0.1            |
-| [TypeScript](https://www.typescriptlang.org/) | ^5.7.3             |
-| [PostgreSQL](https://www.postgresql.org/)     | 17 (imagem Docker) |
-| [TypeORM](https://typeorm.io/)                | ^1.0.0             |
-| [Docker](https://docs.docker.com/)            | -                  |
-| [Jest](https://jestjs.io/pt-BR/)              | ^30.0.0            |
-| [Joi](https://joi.dev/)                       | ^18.2.3            |
+| Ferramenta                                                               | Versão             |
+| ------------------------------------------------------------------------ | ------------------ |
+| [NestJS](https://nestjs.com/)                                            | ^11.0.1            |
+| [TypeScript](https://www.typescriptlang.org/)                            | ^5.7.3             |
+| [PostgreSQL](https://www.postgresql.org/)                                | 17 (imagem Docker) |
+| [TypeORM](https://typeorm.io/)                                           | ^1.0.0             |
+| [Docker](https://docs.docker.com/)                                       | -                  |
+| [Jest](https://jestjs.io/pt-BR/)                                         | ^30.0.0            |
+| [Joi](https://joi.dev/)                                                  | ^18.2.3            |
+| Swagger (@nestjs/swagger) (https://docs.nestjs.com/openapi/introduction) | ^11.4.6            |
+| Resend (https://resend.com/)                                             | ^6.18.1            |
+| bcrypt (https://www.npmjs.com/package/bcrypt)                            | ^6.0.0             |
 
 ## Como rodar o projeto:
 
@@ -109,34 +112,58 @@ axion-backend/
 ├── eslint.config.mjs                   # Configuração do ESLint (flat config)
 ├── .prettierrc                         # Configuração do Prettier
 │
+├── assets/imgs/                        # Imagens usadas em templates de e-mail e docs
+│
 ├── src/                                # Código fonte da aplicação
 │   ├── main.ts                         # Entrypoint da aplicação NestJS
 │   │
+│   ├── @types/                         # Tipos globais (augmentação do Express.Request)
+│   │   └── express.d.ts
+│   │
 │   ├── app/                            # Módulo raiz da aplicação
-│   │   ├── app.module.ts               # Módulo principal (importa TypeORM, Config, etc.)
+│   │   ├── app.module.ts               # Módulo principal (importa TypeORM, Config, Auth, Users)
 │   │   ├── app.controller.ts           # Controller raiz (GET /)
 │   │   ├── app.controller.spec.ts      # Teste unitário do controller raiz
 │   │   ├── app.service.ts              # Service raiz
-│   │   ├── app.config.ts               # Configuração de variáveis de ambiente
+│   │   ├── app.config.ts               # Configuração de variáveis de ambiente (banco)
 │   │   └── config/
-│   │       └── app.configuration.ts    # Configurações globais (pipes, CORS, etc.)
+│   │       ├── app.configuration.ts    # Configurações globais (pipes de validação)
+│   │       └── email-code.config.ts    # Config de expiração/cooldown do código de e-mail
 │   │
-│   ├── modules/                        # Módulos de negócio da aplicação
-│   │   └── user/                       # Exemplo: módulo de usuário (a ser criado)
-│   │       ├── user.module.ts
-│   │       ├── user.controller.ts
-│   │       ├── user.service.ts
-│   │       └── user.entity.ts
+│   ├── auth/                           # Módulo de autenticação
+│   │   ├── auth.module.ts
+│   │   ├── auth.controller.ts          # /auth (login, refresh, verify, resend-code, senhas)
+│   │   ├── auth.controller.spec.ts
+│   │   ├── auth.service.ts             # Regras de auth e tokens JWT
+│   │   ├── auth.service.spec.ts
+│   │   ├── auth.contants.ts            # Constantes de chaves de request
+│   │   ├── config/                     # jwt.config.ts, reset-password.config.ts
+│   │   ├── dto/                        # DTOs de validação (login, tokens, códigos, senhas)
+│   │   ├── guards/                     # auth-token.guard.ts (protege rotas autenticadas)
+│   │   └── hashing/                    # hashing.service.ts + bcrypt.service.ts
 │   │
-│   └── common/                         # Recursos compartilhados entre módulos
-│       ├── decorators/                 # Decoradores personalizados
-│       ├── guards/                     # Guards de autenticação/autorização
-│       ├── interceptors/               # Interceptadores (logs, transformação)
-│       └── filters/                    # Filtros de exceção (tratamento de erros)
+│   ├── users/                          # Módulo de usuários
+│   │   ├── users.module.ts
+│   │   ├── users.controller.ts         # /users (criação de conta)
+│   │   ├── users.controller.spec.ts
+│   │   ├── users.service.ts            # Criação + envio do código de validação
+│   │   ├── users.service.spec.ts
+│   │   ├── dto/                        # create-user.dto.ts, update-user.dto.ts
+│   │   └── entities/                   # user.entity.ts
+│   │
+│   ├── email/                          # Módulo de envio de e-mails (Resend)
+│   │   ├── email.module.ts
+│   │   ├── email.service.ts
+│   │   ├── email.service.spec.ts
+│   │   ├── dto/                        # send-email.dto.ts
+│   │   └── templates/                  # validation-code.template.ts, reset-password.template.ts
+│   │
+│   └── common/                         # Utilitários compartilhados
+│       └── utils/                      # create-username, randomize-username, normalize-base, etc.
 │
 ├── test/                               # Testes e2e da aplicação
-│   ├── app.e2e-spec.ts                 # Teste e2e da rota raiz
-│   └── jest-e2e.json                   # Configuração do Jest para e2e
+│   ├── app.e2e-spec.ts
+│   └── jest-e2e.json
 │
 ├── docs/                               # Documentação do projeto
 │   ├── setup.md
