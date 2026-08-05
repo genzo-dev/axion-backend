@@ -14,6 +14,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthTokenGuard } from './guards/auth-token.guard';
 import type { Request } from 'express';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -85,6 +86,21 @@ export class AuthController {
   @Post('forgot-password')
   forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @ApiOperation({
+    summary:
+      'Usuário poderá redefinir sua senha a partir de um link enviado por e-mail do endpoint /auth/forgot-password.',
+  })
+  @ApiCreatedResponse({
+    description: 'Senha redefinida com sucesso. Faça login com sua nova senha.',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Usuário não autorizado | Token inválido | Token expirado',
+  })
+  @Post('reset-password')
+  resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 
   @ApiOperation({

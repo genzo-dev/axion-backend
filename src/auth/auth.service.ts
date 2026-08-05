@@ -18,6 +18,7 @@ import { EmailService } from 'src/email/email.service';
 import { SendEmailDto } from 'src/email/dto/send-email.dto';
 import { buildResetPasswordEmail } from 'src/email/templates/reset-password.template';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -215,10 +216,6 @@ export class AuthService {
     }
   }
 
-  // auth/forgot-password
-  // TODO: Criar função para o caso do esquecimento da senha.
-  // Deve ser gerado um JWT a partir do email do usuário, e enviado para o mesmo, com um link para a página de redefinição de senha.
-
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
     const user = await this.usersRepository.findOneBy({
       email: forgotPasswordDto.email,
@@ -258,9 +255,42 @@ export class AuthService {
     return { message: 'E-mail de redefinição de senha enviado com sucesso' };
   }
 
-  // auth/reset-password
-  // TODO: Criar função para o caso de redefinição de senha de um usuário deslogado.
-  // Deve ser verificado o JWT enviado no link, e caso seja válido, permitir a redefinição da senha do usuário.
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    let decoded: { sub: string };
+
+    try {
+      decoded = await this.jwtService.verifyAsync(resetPasswordDto.token, {
+        secret: this.resetPasswordConfiguration.secret,
+        audience: this.resetPasswordConfiguration.audience,
+        issuer: this.resetPasswordConfiguration.issuer,
+      });
+    } catch {
+      throw new UnauthorizedException(
+        'Link inválido ou expirado. Solicite um novo link de redefinição.',
+      );
+    }
+
+    const user = await this.usersRepository.findOneBy({
+      uuid: decoded.sub,
+      isValid: true,
+      isVerified: true,
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Link inválido ou expirado. Solicite um novo link de redefinição.',
+      );
+    }
+
+    user.passwordHash = await this.hashingService.hash(
+      resetPasswordDto.newPassword,
+    );
+    await this.usersRepository.save(user);
+
+    return {
+      message: 'Senha redefinida com sucesso. Faça login com sua nova senha.',
+    };
+  }
 
   async changePassword(user: User, changePasswordDto: ChangePasswordDto) {
     const passwordIsValid = await this.hashingService.compare(
