@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { HashingService } from './hashing/hashing.service';
-import { BcrypService } from './hashing/bcrypt.service';
+import { BcryptService } from './hashing/bcrypt.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { JwtModule, JwtService } from '@nestjs/jwt';
@@ -18,7 +18,7 @@ import resetPasswordConfig from './config/reset-password.config';
     AuthService,
     {
       provide: HashingService,
-      useClass: BcrypService,
+      useClass: BcryptService,
     },
   ],
   imports: [
