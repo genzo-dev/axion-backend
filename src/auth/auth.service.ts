@@ -19,6 +19,7 @@ import { SendEmailDto } from 'src/email/dto/send-email.dto';
 import { buildResetPasswordEmail } from 'src/email/templates/reset-password.template';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { buildValidationCodeEmail } from 'src/email/templates/validation-code.template';
 
 @Injectable()
 export class AuthService {
@@ -44,8 +45,8 @@ export class AuthService {
     const isEmail: boolean = loginDto.indentifier.includes('@');
 
     const identifierObj = isEmail
-      ? { email: loginDto.indentifier, isValid: true }
-      : { username: loginDto.indentifier, isValid: true };
+      ? { email: loginDto.indentifier, isActive: true }
+      : { username: loginDto.indentifier, isActive: true };
 
     const user = await this.usersRepository.findOneBy(identifierObj);
 
@@ -118,7 +119,7 @@ export class AuthService {
 
       const user = await this.usersRepository.findOneBy({
         uuid: sub,
-        isValid: true,
+        isActive: true,
         isVerified: true,
       });
 
@@ -144,7 +145,7 @@ export class AuthService {
         throw new UnauthorizedException('Usuário não cadastrado');
       }
 
-      if (!user.vericationCode) {
+      if (!user.verificationCode) {
         throw new UnauthorizedException('Nenhum código ativo');
       }
 
@@ -156,13 +157,13 @@ export class AuthService {
         throw new UnauthorizedException('Código expirado');
       }
 
-      if (user.vericationCode !== validateCodeDto.validateCode) {
+      if (user.verificationCode !== validateCodeDto.validateCode) {
         throw new UnauthorizedException('Código inválido');
       }
 
       user.isVerified = true;
       user.validTimeCode = null;
-      user.vericationCode = null;
+      user.verificationCode = null;
       user.resendTimeCode = null;
 
       const validUser = await this.usersRepository.save(user);
@@ -202,12 +203,23 @@ export class AuthService {
         Date.now() + this.emailCodeConfiguration.emailCodeExpiresAt * 1000,
       );
 
-      user.vericationCode = newUserValidateCode;
+      user.verificationCode = newUserValidateCode;
 
       const validUser = await this.usersRepository.save(user);
 
+      const { html, attachments } =
+        buildValidationCodeEmail(newUserValidateCode);
+      const newSendEmailDto: SendEmailDto = {
+        to: user.email,
+        subject: 'Axion · Confirme seu e-mail',
+        html,
+        attachments,
+      };
+
+      await this.emailService.sendEmail(newSendEmailDto);
+
       if (process.env.NODE_ENV === 'development') {
-        console.log('NOVO CÓDIGO: ', validUser.vericationCode);
+        console.log('NOVO CÓDIGO: ', validUser.verificationCode);
       }
 
       return { message: 'Código reenviado com sucesso' };
@@ -219,7 +231,7 @@ export class AuthService {
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
     const user = await this.usersRepository.findOneBy({
       email: forgotPasswordDto.email,
-      isValid: true,
+      isActive: true,
       isVerified: true,
     });
 
@@ -272,7 +284,7 @@ export class AuthService {
 
     const user = await this.usersRepository.findOneBy({
       uuid: decoded.sub,
-      isValid: true,
+      isActive: true,
       isVerified: true,
     });
 

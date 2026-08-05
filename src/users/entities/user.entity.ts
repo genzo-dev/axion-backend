@@ -31,7 +31,7 @@ export class User {
   name!: string;
 
   @Column({ type: 'varchar', nullable: true })
-  vericationCode?: string | null;
+  verificationCode?: string | null;
 
   @Column({ type: 'timestamp', nullable: true })
   validTimeCode?: Date | null;
@@ -43,7 +43,7 @@ export class User {
   isVerified!: boolean;
 
   @Column({ default: true })
-  isValid!: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn()
   createdAt?: Date;

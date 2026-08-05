@@ -67,7 +67,7 @@ describe('UsersController', () => {
       ...createUserResponse,
       createAt: new Date(),
       updatedAt: new Date(),
-      isValid: true,
+      isActive: true,
       isVerified: true,
     };
 

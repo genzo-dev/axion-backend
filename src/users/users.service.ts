@@ -61,18 +61,20 @@ export class UsersService {
 
       const newUserValidateCode = generateValidationUserCode();
       const newValidTimeCode = (newUser.resendTimeCode = new Date(
+        Date.now() + this.emailCodeConfiguration.emailCodeExpiresAt * 1000,
+      ));
+      const newResendTimeCode = (newUser.validTimeCode = new Date(
         Date.now() +
           this.emailCodeConfiguration.emailCodeResendBlockTime * 1000,
       ));
-      const newResendTimeCode = (newUser.validTimeCode = new Date(
-        Date.now() + this.emailCodeConfiguration.emailCodeExpiresAt * 1000,
-      ));
 
-      newUser.vericationCode = newUserValidateCode;
+      newUser.verificationCode = newUserValidateCode;
       newUser.validTimeCode = newValidTimeCode;
       newUser.resendTimeCode = newResendTimeCode;
 
-      console.log('CÓDIGO DE VALIDAÇÃO DA CONTA ', newUserValidateCode);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('CÓDIGO DE VALIDAÇÃO DA CONTA ', newUserValidateCode);
+      }
 
       const savedUser = await this.userRepository.save(newUser);
 

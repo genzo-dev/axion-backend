@@ -9,7 +9,7 @@ export class EmailService {
   async sendEmail(sendEmailDto: SendEmailDto) {
     const resend = new Resend(process.env.EMAIL_RESEND_API_KEY);
     const { data, error } = await resend.emails.send({
-      from: 'Acme <onboarding@resend.dev>',
+      from: 'Axion <no-reply@resend.dev>',
       to: [sendEmailDto.to],
       subject: sendEmailDto.subject,
       html: sendEmailDto.html,

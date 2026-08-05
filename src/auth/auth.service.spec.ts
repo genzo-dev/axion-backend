@@ -23,7 +23,7 @@ const createMockUser = (overrides: Partial<User> = {}): User => ({
   username: 'email12',
   name: 'userMocked',
   passwordHash: 'hashed-password',
-  isValid: true,
+  isActive: true,
   isVerified: false,
   ...overrides,
 });
@@ -122,7 +122,7 @@ describe('AuthService', () => {
 
     expect(usersRepository.findOneBy).toHaveBeenCalledWith({
       email: loginDto.indentifier,
-      isValid: true,
+      isActive: true,
     });
     expect(hashingService.compare).toHaveBeenCalledWith(
       loginDto.password,
@@ -147,7 +147,7 @@ describe('AuthService', () => {
 
     expect(usersRepository.findOneBy).toHaveBeenCalledWith({
       username: loginDto.indentifier,
-      isValid: true,
+      isActive: true,
     });
     expect(hashingService.compare).toHaveBeenCalledWith(
       loginDto.password,
@@ -200,7 +200,7 @@ describe('AuthService', () => {
     jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(mockUser);
     jest.spyOn(usersRepository, 'save').mockResolvedValue({
       ...mockUser,
-      vericationCode: '123456',
+      verificationCode: '123456',
     });
 
     const result = await authService.resendCode(resendCodeDto);
@@ -244,7 +244,7 @@ describe('AuthService', () => {
 
     expect(usersRepository.findOneBy).toHaveBeenCalledWith({
       uuid: mockUser.uuid,
-      isValid: true,
+      isActive: true,
       isVerified: true,
     });
     expect(jwtService.signAsync).toHaveBeenCalledTimes(2);
@@ -256,7 +256,7 @@ describe('AuthService', () => {
       validateEmail: 'email@email.com',
       validateCode: '123456',
     };
-    const mockUser = createMockUser({ vericationCode: '123456' });
+    const mockUser = createMockUser({ verificationCode: '123456' });
 
     jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(mockUser);
     jest
@@ -273,7 +273,7 @@ describe('AuthService', () => {
       email: validateCodeDto.validateEmail,
     });
     expect(mockUser.isVerified).toBe(true);
-    expect(mockUser.vericationCode).toBeNull();
+    expect(mockUser.verificationCode).toBeNull();
     expect(usersRepository.save).toHaveBeenCalled();
     expect(result).toEqual(mockTokens);
   });
@@ -283,7 +283,7 @@ describe('AuthService', () => {
       validateEmail: 'email@email.com',
       validateCode: '123456',
     };
-    const mockUser = createMockUser({ vericationCode: '676767' });
+    const mockUser = createMockUser({ verificationCode: '676767' });
 
     jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(mockUser);
 
@@ -298,7 +298,7 @@ describe('AuthService', () => {
       validateCode: '123456',
     };
     const mockUser = createMockUser({
-      vericationCode: '123456',
+      verificationCode: '123456',
       validTimeCode: new Date(Date.now() - 60_000),
     });
 
@@ -328,7 +328,7 @@ describe('AuthService', () => {
       validateCode: '123456',
     };
     const mockUser = createMockUser({
-      vericationCode: '123456',
+      verificationCode: '123456',
       isVerified: true,
     });
 
@@ -350,7 +350,7 @@ describe('AuthService', () => {
 
     expect(usersRepository.findOneBy).toHaveBeenCalledWith({
       email: forgotPasswordDto.email,
-      isValid: true,
+      isActive: true,
       isVerified: true,
     });
     expect(emailService.sendEmail).toHaveBeenCalledWith(
@@ -399,7 +399,7 @@ describe('AuthService', () => {
     );
     expect(usersRepository.findOneBy).toHaveBeenCalledWith({
       uuid: mockUser.uuid,
-      isValid: true,
+      isActive: true,
       isVerified: true,
     });
     expect(hashingService.hash).toHaveBeenCalledWith(

@@ -38,11 +38,11 @@ export class AuthTokenGuard implements CanActivate {
         token,
         this.jwtConfiguration,
       );
-      // TODO: Trocar isValid por isActive, melhorando o entendimento do código
+
       const user = await this.usersRepository.findOneBy({
         uuid: payload.sub,
         isVerified: true,
-        isValid: true,
+        isActive: true,
       });
 
       if (!user) {
