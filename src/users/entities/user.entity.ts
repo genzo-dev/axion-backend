@@ -45,6 +45,12 @@ export class User {
   @Column({ default: true })
   isActive!: boolean;
 
+  @Column({ type: 'varchar', nullable: true })
+  refreshTokenJti!: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  resetPasswordJti!: string | null;
+
   @CreateDateColumn()
   createdAt?: Date;
 

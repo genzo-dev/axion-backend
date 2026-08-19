@@ -20,6 +20,7 @@ import { buildResetPasswordEmail } from 'src/email/templates/reset-password.temp
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { buildValidationCodeEmail } from 'src/email/templates/validation-code.template';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -69,6 +70,8 @@ export class AuthService {
   }
 
   private async createTokens(user: User) {
+    const jti = randomUUID();
+
     const accessTokenPromise = this.signJwtAsync(
       user.uuid,
       this.jwtConfiguration.jwtTtl,
@@ -77,7 +80,11 @@ export class AuthService {
     const refreshTokenPromise = this.signJwtAsync(
       user.uuid,
       this.jwtConfiguration.jwtRefreshTtl,
+      jti,
     );
+
+    user.refreshTokenJti = jti;
+    await this.usersRepository.save(user);
 
     const [accessToken, refreshToken] = await Promise.all([
       accessTokenPromise,
@@ -93,12 +100,18 @@ export class AuthService {
   private async signJwtAsync<T>(
     sub: string,
     expiresIn: number,
+    jti?: string,
     payload?: T,
-    options?: { secret: string; audience?: string; issuer?: string },
+    options?: {
+      secret: string;
+      audience?: string;
+      issuer?: string;
+    },
   ) {
     return await this.jwtService.signAsync(
       {
         sub,
+        jti,
         ...payload,
       },
       {
@@ -112,7 +125,7 @@ export class AuthService {
 
   async refreshTokens(refreshTokenDto: RefreshTokenDto) {
     try {
-      const { sub } = await this.jwtService.verifyAsync(
+      const { sub, jti } = await this.jwtService.verifyAsync(
         refreshTokenDto.refreshToken,
         this.jwtConfiguration,
       );
@@ -124,6 +137,10 @@ export class AuthService {
       });
 
       if (!user) {
+        throw new UnauthorizedException('Usuário não autorizado');
+      }
+
+      if (!jti || user.refreshTokenJti !== jti) {
         throw new UnauthorizedException('Usuário não autorizado');
       }
 
@@ -241,9 +258,12 @@ export class AuthService {
       );
     }
 
+    const jti = randomUUID();
+
     const resetPasswordToken = await this.signJwtAsync(
       user.uuid,
       this.resetPasswordConfiguration.jwtTtl,
+      jti,
       undefined,
       {
         secret: this.resetPasswordConfiguration.secret,
@@ -251,6 +271,9 @@ export class AuthService {
         issuer: this.resetPasswordConfiguration.issuer,
       },
     );
+
+    user.resetPasswordJti = jti;
+    await this.usersRepository.save(user);
 
     const resetLink = `${this.resetPasswordConfiguration.frontUrl}/reset-password?token=${resetPasswordToken}`;
 
@@ -268,7 +291,7 @@ export class AuthService {
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
-    let decoded: { sub: string };
+    let decoded: { sub: string; jti: string };
 
     try {
       decoded = await this.jwtService.verifyAsync(resetPasswordDto.token, {
@@ -286,6 +309,7 @@ export class AuthService {
       uuid: decoded.sub,
       isActive: true,
       isVerified: true,
+      resetPasswordJti: decoded.jti,
     });
 
     if (!user) {
@@ -297,6 +321,8 @@ export class AuthService {
     user.passwordHash = await this.hashingService.hash(
       resetPasswordDto.newPassword,
     );
+
+    user.resetPasswordJti = null;
     await this.usersRepository.save(user);
 
     return {
