@@ -2,10 +2,31 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import configureApp from './app/config/app.configuration';
+import helmet from 'helmet';
+import { parseCorsWhitelist } from './common/utils/parse-cors-whitelist';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   configureApp(app);
+
+  // Configuração do CORS via Helmet
+
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+  const corsWhiteList = parseCorsWhitelist(process.env.CORS_WHITE_LIST ?? '');
+
+  app.enableCors({
+    origin: (
+      origin: string | undefined,
+      callback: (...args: any[]) => void,
+    ) => {
+      if (!origin || corsWhiteList.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error('Not allowed by CORS'), false);
+    },
+  });
 
   // Configuração do Swagger
 
