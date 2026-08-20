@@ -174,14 +174,19 @@ export class AuthService {
         throw new UnauthorizedException('Código expirado');
       }
 
-      if (user.verificationCode !== validateCodeDto.validateCode) {
+      if (
+        await this.hashingService.compare(
+          validateCodeDto.validateCode,
+          user.verificationCode,
+        )
+      ) {
+        user.isVerified = true;
+        user.validTimeCode = null;
+        user.verificationCode = null;
+        user.resendTimeCode = null;
+      } else {
         throw new UnauthorizedException('Código inválido');
       }
-
-      user.isVerified = true;
-      user.validTimeCode = null;
-      user.verificationCode = null;
-      user.resendTimeCode = null;
 
       const validUser = await this.usersRepository.save(user);
 
@@ -220,9 +225,8 @@ export class AuthService {
         Date.now() + this.emailCodeConfiguration.emailCodeExpiresAt * 1000,
       );
 
-      user.verificationCode = newUserValidateCode;
-
-      const validUser = await this.usersRepository.save(user);
+      user.verificationCode =
+        await this.hashingService.hash(newUserValidateCode);
 
       const { html, attachments } =
         buildValidationCodeEmail(newUserValidateCode);
@@ -236,8 +240,10 @@ export class AuthService {
       await this.emailService.sendEmail(newSendEmailDto);
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('NOVO CÓDIGO: ', validUser.verificationCode);
+        console.log('NOVO CÓDIGO: ', newUserValidateCode);
       }
+
+      await this.usersRepository.save(user);
 
       return { message: 'Código reenviado com sucesso' };
     } catch (error) {

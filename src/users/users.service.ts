@@ -68,7 +68,8 @@ export class UsersService {
           this.emailCodeConfiguration.emailCodeResendBlockTime * 1000,
       ));
 
-      newUser.verificationCode = newUserValidateCode;
+      newUser.verificationCode =
+        await this.hashingService.hash(newUserValidateCode);
       newUser.validTimeCode = newValidTimeCode;
       newUser.resendTimeCode = newResendTimeCode;
 
