@@ -23,6 +23,8 @@ const createMockUser = (overrides: Partial<User> = {}): User => ({
   username: 'email12',
   name: 'userMocked',
   passwordHash: 'hashed-password',
+  refreshTokenJti: 'jti-123',
+  resetPasswordJti: 'jti-123',
   isActive: true,
   isVerified: false,
   ...overrides,
@@ -233,7 +235,7 @@ describe('AuthService', () => {
 
     jest
       .spyOn(jwtService, 'verifyAsync')
-      .mockResolvedValue({ sub: mockUser.uuid });
+      .mockResolvedValue({ sub: mockUser.uuid, jti: 'jti-123' });
     jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(mockUser);
     jest
       .spyOn(jwtService, 'signAsync')
@@ -259,6 +261,7 @@ describe('AuthService', () => {
     const mockUser = createMockUser({ verificationCode: '123456' });
 
     jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(mockUser);
+    jest.spyOn(hashingService, 'compare').mockResolvedValue(true);
     jest
       .spyOn(usersRepository, 'save')
       .mockResolvedValue({ ...mockUser, isVerified: true });

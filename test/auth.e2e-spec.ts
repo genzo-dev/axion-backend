@@ -38,8 +38,7 @@ describe('AuthController (e2e)', () => {
   };
 
   const verifyAccount = async (email: string) => {
-    const code = await getVerificationCode(ctx.userRepository, email);
-    expect(code).not.toBeNull();
+    const code = await getVerificationCode(email);
 
     return request(ctx.httpServer)
       .post('/auth/verify')
@@ -89,7 +88,9 @@ describe('AuthController (e2e)', () => {
       .post('/auth/resend-code')
       .send({ validateEmail: account.email })
       .expect(401);
-    expect(blocked.body.message).toBe('Aguarde para pedir seu código novamente');
+    expect(blocked.body.message).toBe(
+      'Aguarde para pedir seu código novamente',
+    );
 
     const user = await ctx.userRepository.findOneBy({ email: account.email });
     user!.resendTimeCode = new Date(Date.now() - 60_000);
@@ -102,7 +103,7 @@ describe('AuthController (e2e)', () => {
     expect(resend.body.message).toBe('Código reenviado com sucesso');
     expect(emailMock.sendEmail).toHaveBeenCalledTimes(2);
 
-    const newCode = await getVerificationCode(ctx.userRepository, account.email);
+    const newCode = await getVerificationCode(account.email);
     expect(newCode).not.toBeNull();
 
     const verifyResponse = await request(ctx.httpServer)
@@ -177,7 +178,7 @@ describe('AuthController (e2e)', () => {
     user!.validTimeCode = new Date(Date.now() - 60_000);
     await ctx.userRepository.save(user!);
 
-    const code = await getVerificationCode(ctx.userRepository, account.email);
+    const code = await getVerificationCode(account.email);
 
     await request(ctx.httpServer)
       .post('/auth/verify')
