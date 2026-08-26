@@ -69,7 +69,7 @@ export class AuthService {
     return this.createTokens(user);
   }
 
-  private async createTokens(user: User) {
+  private async createTokens(user: User, oldJti?: string) {
     const jti = randomUUID();
 
     const accessTokenPromise = this.signJwtAsync(
@@ -83,13 +83,31 @@ export class AuthService {
       jti,
     );
 
-    user.refreshTokenJti = jti;
-    await this.usersRepository.save(user);
-
     const [accessToken, refreshToken] = await Promise.all([
       accessTokenPromise,
       refreshTokenPromise,
     ]);
+
+    if (oldJti) {
+      const result = await this.usersRepository.update(
+        {
+          uuid: user.uuid,
+          isActive: true,
+          isVerified: true,
+          refreshTokenJti: oldJti,
+        },
+        {
+          refreshTokenJti: jti,
+        },
+      );
+
+      if (result.affected !== 1) {
+        new UnauthorizedException('Refresh token inválido');
+      }
+    } else {
+      user.refreshTokenJti = jti;
+      await this.usersRepository.save(user);
+    }
 
     return {
       accessToken,
@@ -144,7 +162,7 @@ export class AuthService {
         throw new UnauthorizedException('Usuário não autorizado');
       }
 
-      return this.createTokens(user);
+      return this.createTokens(user, jti);
     } catch (error) {
       if (error instanceof Error) {
         throw new UnauthorizedException(error);
