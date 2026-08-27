@@ -11,6 +11,8 @@ import { ConfigModule } from '@nestjs/config';
 import emailCodeConfig from 'src/app/config/email-code.config';
 import { EmailModule } from 'src/email/email.module';
 import resetPasswordConfig from './config/reset-password.config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   controllers: [AuthController],
@@ -19,6 +21,10 @@ import resetPasswordConfig from './config/reset-password.config';
     {
       provide: HashingService,
       useClass: BcryptService,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
   imports: [

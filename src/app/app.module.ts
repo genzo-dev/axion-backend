@@ -7,6 +7,7 @@ import appConfig from './app.config';
 import * as Joi from 'joi';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -24,6 +25,23 @@ import { UsersModule } from 'src/users/users.module';
         DATABASE_SYNCHRONIZE: Joi.number().min(0).max(1).default(0),
       }),
     }),
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 10000,
+        limit: 3,
+      },
+      {
+        name: 'medium',
+        ttl: 60000,
+        limit: 20,
+      },
+      {
+        name: 'long',
+        ttl: 900000,
+        limit: 100,
+      },
+    ]),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule.forFeature(appConfig)],
       inject: [appConfig.KEY],

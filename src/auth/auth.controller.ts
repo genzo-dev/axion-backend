@@ -15,6 +15,7 @@ import { AuthTokenGuard } from './guards/auth-token.guard';
 import type { Request } from 'express';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -25,6 +26,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'E-mail, username ou senha inválidos.',
   })
+  @SkipThrottle({ long: true })
   @Post('login')
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
@@ -40,6 +42,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Usuário não autorizado.',
   })
+  @Throttle({})
   @Post('refresh')
   refreshTokens(@Body() refreshTokensDto: RefreshTokenDto) {
     return this.authService.refreshTokens(refreshTokensDto);
@@ -55,6 +58,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Usuário não autorizado | Código inválido | Código expirado',
   })
+  @SkipThrottle({ medium: true, long: true })
   @Post('verify')
   validateAccount(@Body() validateCodeDto: ValidateCodeDto) {
     return this.authService.validateAccount(validateCodeDto);
@@ -69,6 +73,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Usuário não autorizado | Código inválido | Código expirado',
   })
+  @Throttle({})
   @Post('resend-code')
   resendCode(@Body() resendCodeDto: ResendCodeDto) {
     return this.authService.resendCode(resendCodeDto);
@@ -83,6 +88,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Usuário não autorizado | E-mail não cadastrado',
   })
+  @SkipThrottle({ medium: true, long: true })
   @Post('forgot-password')
   forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto);
@@ -98,6 +104,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Usuário não autorizado | Token inválido | Token expirado',
   })
+  @Throttle({})
   @Post('reset-password')
   resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
@@ -114,6 +121,7 @@ export class AuthController {
     description: 'Senha atual inválida | Usuário não autorizado',
   })
   @UseGuards(AuthTokenGuard)
+  @Throttle({})
   @Patch('change-password')
   changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
