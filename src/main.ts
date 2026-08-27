@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import configureApp from './app/config/app.configuration';
 import helmet from 'helmet';
 import { parseCorsWhitelist } from './common/utils/parse-cors-whitelist';
+import { TooManyRequestsFilter } from './common/filters/too-many-requests.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -45,6 +46,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, documentBuildConfig);
 
   SwaggerModule.setup('docs', app, document);
+
+  app.useGlobalFilters(new TooManyRequestsFilter());
 
   await app.listen(process.env.LOCAL_PORT_APP ?? 3001, '0.0.0.0');
 }
