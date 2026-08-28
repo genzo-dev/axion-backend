@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import configureApp from './app/config/app.configuration';
@@ -47,7 +47,8 @@ async function bootstrap() {
 
   SwaggerModule.setup('docs', app, document);
 
-  app.useGlobalFilters(new TooManyRequestsFilter());
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new TooManyRequestsFilter(httpAdapter));
 
   await app.listen(process.env.LOCAL_PORT_APP ?? 3001, '0.0.0.0');
 }

@@ -15,6 +15,7 @@ import {
   ApiCreatedResponse,
   ApiOperation,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('users')
 export class UsersController {
@@ -23,6 +24,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Usuário poderá criar sua conta.' })
   @ApiCreatedResponse({ description: 'Conta/Usuário criado com sucesso.' })
   @ApiConflictResponse({ description: 'E-mail ou username (@) já cadastrado.' })
+  @Throttle({})
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);

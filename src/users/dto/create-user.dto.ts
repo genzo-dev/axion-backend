@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   MaxLength,
   MinLength,
@@ -22,9 +23,9 @@ export class CreateUserDto {
     description:
       'Segue um formato de tag de usuário, transformando espaços em "_" de forma automática (genzo dev -> genzo_dev) e será utilizado como tag do usuário no frontend (Ex.: @genzo_dev)',
   })
-  @IsNotEmpty({ message: 'Username inválido' })
+  @IsOptional()
   @IsString({ message: 'Username deve ser um texto' })
-  username!: string;
+  username?: string;
 
   @ApiProperty({
     example: '12345678',
