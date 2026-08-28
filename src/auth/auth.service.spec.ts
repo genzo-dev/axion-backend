@@ -76,6 +76,7 @@ describe('AuthService', () => {
           useValue: {
             findOneBy: jest.fn(),
             save: jest.fn(),
+            update: jest.fn(),
           },
         },
         {
@@ -241,6 +242,11 @@ describe('AuthService', () => {
       .spyOn(jwtService, 'signAsync')
       .mockResolvedValueOnce('access-token')
       .mockResolvedValueOnce('refresh-token');
+    jest.spyOn(usersRepository, 'update').mockResolvedValue({
+      affected: 1,
+      raw: {},
+      generatedMaps: [],
+    });
 
     const result = await authService.refreshTokens(refreshTokenDto);
 

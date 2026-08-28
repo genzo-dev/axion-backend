@@ -158,10 +158,6 @@ export class AuthService {
         throw new UnauthorizedException('Usuário não autorizado');
       }
 
-      if (!jti || user.refreshTokenJti !== jti) {
-        throw new UnauthorizedException('Usuário não autorizado');
-      }
-
       return this.createTokens(user, jti);
     } catch (error) {
       if (error instanceof Error) {
