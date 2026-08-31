@@ -2,8 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { HashingService } from 'src/auth/hashing/hashing.service';
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, ExecutionContext } from '@nestjs/common';
 import emailCodeConfig from 'src/app/config/email-code.config';
+import jwtConfig from 'src/auth/config/jwt.config';
+import { AuthTokenGuard } from 'src/auth/guards/auth-token.guard';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -14,7 +16,6 @@ describe('UsersController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
       providers: [
-        UsersService,
         {
           provide: UsersService,
           useValue: {
@@ -35,13 +36,44 @@ describe('UsersController', () => {
             emailCodeResendBlockTime: 30,
           },
         },
+        {
+          provide: jwtConfig.KEY,
+          useValue: {
+            secret: process.env.JWT_SECRET || 'segredo',
+            audience: process.env.JWT_TOKEN_AUDIENCE,
+            issuer: process.env.JWT_TOKEN_ISSUER,
+            jwtTtl: Number(process.env.JWT_TTL ?? '900'),
+            jwtRefreshTtl: Number(process.env.JWT_REFRESH_TTL ?? '604800'),
+          },
+        },
       ],
-    }).compile();
+    })
+      .overrideGuard(AuthTokenGuard)
+      .useValue({
+        canActivate: jest.fn(() => true),
+      })
+      .compile();
 
     controller = module.get<UsersController>(UsersController);
     usersService = module.get(UsersService);
     hashingService = module.get(HashingService);
   });
+
+  const mockUser = {
+    uuid: 'user-123',
+    email: ' user@email.com',
+    username: 'user_username',
+    name: 'Axion',
+    description: 'Sou um usuário de teste',
+    createdAt: new Date(),
+  };
+
+  const mockAuthTokenGuard = {
+    canAcitvate: (context: ExecutionContext) => {
+      const request = context.switchToHttp().getRequest();
+      request.user = mockUser;
+    },
+  };
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
@@ -60,6 +92,8 @@ describe('UsersController', () => {
       username: 'genzo-dev',
       passwordHash: await hashingService.hash(createUserDto.password),
       name: 'Gabriel Enzo',
+      refreshTokenJti: '',
+      resetPasswordJti: '',
     };
 
     const expectedResult = {
@@ -92,5 +126,15 @@ describe('UsersController', () => {
 
     await expect(controller.create(dto)).rejects.toThrow(ConflictException);
     expect(usersService.create).toHaveBeenCalledWith(dto);
+  });
+
+  it('should return authenticated user', async () => {
+    const req = {
+      user: mockUser,
+    };
+
+    const result = controller.getMe(req);
+
+    expect(result).toEqual(mockUser);
   });
 });

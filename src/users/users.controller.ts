@@ -49,7 +49,6 @@ export class UsersController {
   @Get('me')
   getMe(@Req() req): ResponseUserDto {
     const user = req.user;
-    console.log('REQ.USER:', user);
 
     return {
       uuid: user.uuid,

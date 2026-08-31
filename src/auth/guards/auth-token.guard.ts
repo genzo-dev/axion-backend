@@ -39,15 +39,11 @@ export class AuthTokenGuard implements CanActivate {
         this.jwtConfiguration,
       );
 
-      console.log('PAYLOAD:', payload);
-
       const user = await this.usersRepository.findOneBy({
         uuid: payload.sub,
         isVerified: true,
         isActive: true,
       });
-
-      console.log('USER:', user);
 
       if (!user) {
         throw new UnauthorizedException('Pessoa não autorizada');
