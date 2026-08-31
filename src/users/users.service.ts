@@ -59,7 +59,10 @@ export class UsersService {
       const newUser = this.userRepository.create(userData);
       await this.userRepository.save(newUser);
 
-      const newUserValidateCode = generateValidationUserCode();
+      const newUserValidateCode =
+        process.env.NODE_ENV === 'test'
+          ? '123456'
+          : generateValidationUserCode();
       const newValidTimeCode = (newUser.resendTimeCode = new Date(
         Date.now() + this.emailCodeConfiguration.emailCodeExpiresAt * 1000,
       ));
@@ -73,22 +76,24 @@ export class UsersService {
       newUser.validTimeCode = newValidTimeCode;
       newUser.resendTimeCode = newResendTimeCode;
 
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === 'development' || 'test') {
         console.log('CÓDIGO DE VALIDAÇÃO DA CONTA ', newUserValidateCode);
       }
 
       const savedUser = await this.userRepository.save(newUser);
 
-      const { html, attachments } =
-        buildValidationCodeEmail(newUserValidateCode);
-      const newSendEmailDto: SendEmailDto = {
-        to: savedUser.email,
-        subject: 'Axion · Confirme seu e-mail',
-        html: html,
-        attachments,
-      };
+      if (process.env.NODE_ENV !== 'test') {
+        const { html, attachments } =
+          buildValidationCodeEmail(newUserValidateCode);
+        const newSendEmailDto: SendEmailDto = {
+          to: savedUser.email,
+          subject: 'Axion · Confirme seu e-mail',
+          html: html,
+          attachments,
+        };
 
-      await this.emailService.sendEmail(newSendEmailDto);
+        await this.emailService.sendEmail(newSendEmailDto);
+      }
 
       return savedUser;
     } catch (error) {
