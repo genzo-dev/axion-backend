@@ -39,11 +39,15 @@ export class AuthTokenGuard implements CanActivate {
         this.jwtConfiguration,
       );
 
+      console.log('PAYLOAD:', payload);
+
       const user = await this.usersRepository.findOneBy({
         uuid: payload.sub,
         isVerified: true,
         isActive: true,
       });
+
+      console.log('USER:', user);
 
       if (!user) {
         throw new UnauthorizedException('Pessoa não autorizada');
@@ -52,7 +56,8 @@ export class AuthTokenGuard implements CanActivate {
       request.user = user;
       payload[REQUEST_USER_KEY] = user;
       request[REQUEST_TOKEN_PAYLOAD_KEY] = payload;
-    } catch {
+    } catch (error) {
+      console.error(error);
       throw new UnauthorizedException('Falha ao logar');
     }
 

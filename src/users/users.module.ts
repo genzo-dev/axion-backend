@@ -7,16 +7,19 @@ import { User } from './entities/user.entity';
 import { ConfigModule } from '@nestjs/config';
 import emailCodeConfig from 'src/app/config/email-code.config';
 import { EmailModule } from 'src/email/email.module';
+import { AuthTokenGuard } from 'src/auth/guards/auth-token.guard';
+import jwtConfig from 'src/auth/config/jwt.config';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     AuthModule,
     ConfigModule.forFeature(emailCodeConfig),
+    ConfigModule.forFeature(jwtConfig),
     EmailModule,
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, AuthTokenGuard],
   exports: [UsersService],
 })
 export class UsersModule {}

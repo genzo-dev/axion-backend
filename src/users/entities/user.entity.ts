@@ -30,6 +30,9 @@ export class User {
   @Column({ length: 150 })
   name!: string;
 
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
   @Column({ type: 'varchar', nullable: true })
   verificationCode?: string | null;
 
