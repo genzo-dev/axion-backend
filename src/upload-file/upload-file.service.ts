@@ -22,11 +22,11 @@ export class UploadFileService {
       .webp({ quality: 80 })
       .toBuffer();
 
-    if (uploadFile.file.size < 5 * 1024) {
+    if (buffer.length < 5 * 1024) {
       throw new BadRequestException('Arquivo muito pequeno');
     }
 
-    if (uploadFile.file.size > 200 * 1024) {
+    if (buffer.length > 200 * 1024) {
       throw new BadRequestException('Arquivo muito grande');
     }
 

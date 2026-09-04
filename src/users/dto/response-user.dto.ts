@@ -31,6 +31,12 @@ export class ResponseUserDto {
   description!: string;
 
   @ApiProperty({
+    example: 'UUID do usuário',
+    description: 'Retorna a key da imagem de perfil do usuário',
+  })
+  profileImageKey?: string;
+
+  @ApiProperty({
     example: 'Gabriel Enzo',
     description: 'Retorna a data de criação da conta do usuário',
   })

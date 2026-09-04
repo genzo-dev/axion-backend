@@ -16,5 +16,6 @@ import jwtConfig from 'src/auth/config/jwt.config';
   ],
   controllers: [UploadFileController],
   providers: [UploadFileService],
+  exports: [UploadFileService],
 })
 export class UploadFileModule {}

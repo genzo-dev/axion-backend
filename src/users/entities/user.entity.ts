@@ -34,6 +34,9 @@ export class User {
   description?: string;
 
   @Column({ type: 'varchar', nullable: true })
+  profileImageKey?: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
   verificationCode?: string | null;
 
   @Column({ type: 'timestamp', nullable: true })

@@ -9,6 +9,7 @@ import emailCodeConfig from 'src/app/config/email-code.config';
 import { EmailModule } from 'src/email/email.module';
 import { AuthTokenGuard } from 'src/auth/guards/auth-token.guard';
 import jwtConfig from 'src/auth/config/jwt.config';
+import { UploadFileService } from 'src/upload-file/upload-file.service';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import jwtConfig from 'src/auth/config/jwt.config';
     EmailModule,
   ],
   controllers: [UsersController],
-  providers: [UsersService, AuthTokenGuard],
+  providers: [UsersService, AuthTokenGuard, UploadFileService],
   exports: [UsersService],
 })
 export class UsersModule {}

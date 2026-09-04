@@ -9,14 +9,23 @@ import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { UploadFileModule } from 'src/upload-file/upload-file.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 const isTest = process.env.NODE_ENV === 'test';
+
+console.log('__dirname:', __dirname);
+console.log('pictures:', join(__dirname, '..', 'pictures'));
 
 @Module({
   imports: [
     AuthModule,
     UsersModule,
     UploadFileModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', 'pictures'),
+      serveRoot: '/pictures',
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({

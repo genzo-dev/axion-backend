@@ -18,6 +18,7 @@ import type { ConfigType } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';
 import { SendEmailDto } from 'src/email/dto/send-email.dto';
 import { buildValidationCodeEmail } from 'src/email/templates/validation-code.template';
+import { UploadFileService } from 'src/upload-file/upload-file.service';
 
 @Injectable()
 export class UsersService {
@@ -28,6 +29,7 @@ export class UsersService {
     @Inject(emailCodeConfig.KEY)
     private readonly emailCodeConfiguration: ConfigType<typeof emailCodeConfig>,
     private readonly emailService: EmailService,
+    private readonly uploadFileService: UploadFileService,
   ) {}
 
   notFoundPerson<T>(
@@ -133,13 +135,24 @@ export class UsersService {
     }
   }
 
-  async updateMe(user: User, dto: UpdateUserDto) {
+  // TODO: Remover LOGS e implementar erro correto no catch para username único
+
+  async updateMe(user: User, dto: UpdateUserDto, file?: Express.Multer.File) {
     try {
+      if (file) {
+        const profileImageKey = await this.uploadFileService.uploadProfileImage(
+          { userUuid: user.uuid, file },
+        );
+
+        dto.profileImageKey = profileImageKey;
+      }
       const result = await this.userRepository.update({ uuid: user.uuid }, dto);
 
       return result;
-    } catch {
-      throw new ConflictException('Esse nome de usuário já está em uso');
+    } catch (error) {
+      throw new ConflictException(
+        'Este nome de usuário já está sendo utilizado',
+      );
     }
   }
 
