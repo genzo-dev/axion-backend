@@ -133,6 +133,16 @@ export class UsersService {
     }
   }
 
+  async updateMe(user: User, dto: UpdateUserDto) {
+    try {
+      const result = await this.userRepository.update({ uuid: user.uuid }, dto);
+
+      return result;
+    } catch {
+      throw new ConflictException('Esse nome de usuário já está em uso');
+    }
+  }
+
   findAll() {
     return `This action returns all users`;
   }

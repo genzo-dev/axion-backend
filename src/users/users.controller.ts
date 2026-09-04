@@ -20,9 +20,10 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { AuthTokenGuard } from 'src/auth/guards/auth-token.guard';
 import { ResponseUserDto } from './dto/response-user.dto';
+import { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -46,6 +47,7 @@ export class UsersController {
     description: 'Usuário não autorizado | Usuário não logado',
   })
   @UseGuards(AuthTokenGuard)
+  @SkipThrottle({ short: true, medium: true, long: true })
   @Get('me')
   getMe(@Req() req): ResponseUserDto {
     const user = req.user;
@@ -58,6 +60,24 @@ export class UsersController {
       description: user.description,
       createdAt: user.createdAt,
     };
+  }
+
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Encontra o usuário autenticado.' })
+  @ApiOkResponse({
+    description: 'Informações do usuário autenticado retornadas com sucesso',
+  })
+  @ApiConflictResponse({
+    description: 'Nome de usuário (username) deve ser único',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Usuário não autorizado | Usuário não logado',
+  })
+  @UseGuards(AuthTokenGuard)
+  @SkipThrottle({ short: true, medium: true, long: true })
+  @Patch('me')
+  updateMe(@Req() req, @Body() dto: UpdateUserDto) {
+    return this.usersService.updateMe(req.user, dto);
   }
 
   @ApiOperation({ summary: 'Encontra todos os usuários.' })
