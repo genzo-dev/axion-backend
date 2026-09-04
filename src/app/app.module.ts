@@ -8,6 +8,7 @@ import * as Joi from 'joi';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { UploadFileModule } from 'src/upload-file/upload-file.module';
 
 const isTest = process.env.NODE_ENV === 'test';
 
@@ -15,6 +16,7 @@ const isTest = process.env.NODE_ENV === 'test';
   imports: [
     AuthModule,
     UsersModule,
+    UploadFileModule,
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
