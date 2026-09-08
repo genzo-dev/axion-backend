@@ -17,6 +17,10 @@ export class UploadFileService {
       );
     }
 
+    if (!uploadFile.file || uploadFile.file.size === 0) {
+      throw new BadRequestException('Arquivo inválido ou vazio');
+    }
+
     const buffer = await sharp(uploadFile.file.buffer)
       .resize(360, 360, { fit: 'cover' })
       .webp({ quality: 80 })

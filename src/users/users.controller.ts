@@ -66,11 +66,12 @@ export class UsersController {
       profileImageKey: user.profileImageKey,
       description: user.description,
       createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   }
 
   @ApiBearerAuth('access-token')
-  @ApiConsumes('application/json', 'multipart/form-data')
+  @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       allOf: [

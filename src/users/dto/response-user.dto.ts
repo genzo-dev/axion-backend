@@ -41,4 +41,10 @@ export class ResponseUserDto {
     description: 'Retorna a data de criação da conta do usuário',
   })
   createdAt!: string;
+
+  @ApiProperty({
+    example: 'Gabriel Enzo',
+    description: 'Retorna a data de atualização da conta do usuário',
+  })
+  updatedAt!: string;
 }

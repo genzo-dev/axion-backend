@@ -38,11 +38,8 @@ export class UpdateUserDto {
   @MaxLength(500, { message: 'Nome deve ter no máximo 150 caracteres' })
   description?: string;
 
-  @IsOptional()
-  profileImage?: string;
-
-  @IsOptional()
-  profileImageKey?: string;
+  // @IsOptional()
+  // profileImage?: string;
 
   // TODO: Adicionar após a criação de um usuário admin
   // @IsEnum(RoutePolicies, { each: true })
