@@ -59,7 +59,6 @@ export class UsersService {
       };
 
       const newUser = this.userRepository.create(userData);
-      await this.userRepository.save(newUser);
 
       const newUserValidateCode =
         process.env.NODE_ENV === 'test'
@@ -78,7 +77,10 @@ export class UsersService {
       newUser.validTimeCode = newValidTimeCode;
       newUser.resendTimeCode = newResendTimeCode;
 
-      if (process.env.NODE_ENV === 'development' || 'test') {
+      if (
+        process.env.NODE_ENV === 'development' ||
+        process.env.NODE_ENV === 'test'
+      ) {
         console.log('CÓDIGO DE VALIDAÇÃO DA CONTA ', newUserValidateCode);
       }
 
@@ -135,24 +137,36 @@ export class UsersService {
     }
   }
 
-  // TODO: Remover LOGS e implementar erro correto no catch para username único
-
   async updateMe(user: User, dto: UpdateUserDto, file?: Express.Multer.File) {
     try {
-      if (file) {
-        const profileImageKey = await this.uploadFileService.uploadProfileImage(
-          { userUuid: user.uuid, file },
-        );
+      let profileImageKey: string | undefined;
 
-        dto.profileImageKey = profileImageKey;
+      if (file && file.size > 0) {
+        profileImageKey = await this.uploadFileService.uploadProfileImage({
+          userUuid: user.uuid,
+          file,
+        });
       }
-      const result = await this.userRepository.update({ uuid: user.uuid }, dto);
+
+      const updateUser: Partial<User> = {
+        ...dto,
+        ...(profileImageKey && { profileImageKey }),
+      };
+
+      const result = await this.userRepository.update(
+        { uuid: user.uuid },
+        updateUser,
+      );
 
       return result;
     } catch (error) {
-      throw new ConflictException(
-        'Este nome de usuário já está sendo utilizado',
-      );
+      if (error instanceof ConflictException) {
+        throw new ConflictException(
+          'Este nome de usuário já está sendo utilizado',
+        );
+      }
+
+      throw error;
     }
   }
 
